@@ -6,24 +6,22 @@ import { SignUpSchema } from "./signUpSchema";
 type State = {
   error?: ZodFormattedError<z.infer<typeof SignUpSchema>>;
   success: boolean;
-  timestamp?: Date;
 };
 
 export async function SubmitSignUp(_prevState: State, formData: FormData) {
-  const result = SignUpSchema.safeParse({
-    username: formData.get("username"),
-    email: formData.get("email"),
-    displayname: formData.get("displayname"),
-    website: formData.get("website"),
-    about: formData.get("about"),
-  });
+  const raw = {
+    username: formData.get("username")?.toString() ?? "",
+    email: formData.get("email")?.toString() ?? "",
+    displayname: formData.get("displayname")?.toString() ?? "",
+    website: formData.get("website")?.toString() ?? "",
+    about: formData.get("about")?.toString() ?? "",
+  };
+  const result = SignUpSchema.safeParse(raw);
 
   if (!result.success) {
-    return {
-      error: result.error.format(),
-      success: false,
-      timestamp: new Date(),
-    };
+    const { fieldErrors } = result.error.flatten();
+
+    return { errors: fieldErrors, success: false };
   }
 
   console.log(result.data);
